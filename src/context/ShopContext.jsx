@@ -22,6 +22,7 @@ const ShopContextProvider = (props) => {
 
   const navigate = useNavigate();
 
+
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
@@ -64,46 +65,48 @@ const ShopContextProvider = (props) => {
     return totalCount;
   };
 
-  // xoa + tang/giam 
-  const updateQuantity = async (itemId, size, quantity, comfirm=false) => {
+  // xoa + tang/giam
+  const updateQuantity = async (itemId, size, quantity, comfirm = false) => {
     let cartData = structuredClone(cartItems);
     cartData[itemId][size] = quantity;
-    
+
     if (comfirm && quantity === 0) {
-    const confirmed = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này không?");
-    if (!confirmed) {
-      toast.info("Đã hủy thao tác.", { autoClose: 1500 });
-      return;
+      const confirmed = window.confirm(
+        "Bạn có chắc chắn muốn xóa sản phẩm này không?"
+      );
+      if (!confirmed) {
+        toast.info("Đã hủy thao tác.", { autoClose: 1500 });
+        return;
+      }
     }
-  }
 
-  if (quantity === 0) {
-    delete cartData[itemId][size];
-    if (Object.keys(cartData[itemId]).length === 0) {
-      delete cartData[itemId];
+    if (quantity === 0) {
+      delete cartData[itemId][size];
+      if (Object.keys(cartData[itemId]).length === 0) {
+        delete cartData[itemId];
+      }
+    } else {
+      cartData[itemId][size] = quantity;
     }
-  } else {
-    cartData[itemId][size] = quantity;
-  }
 
-  setCartItems(cartData);
-  toast.success("Cập nhật giỏ hàng thành công!", { autoClose: 1500 });
+    setCartItems(cartData);
+    toast.success("Cập nhật giỏ hàng thành công!", { autoClose: 1500 });
   };
 
   const getCartAmount = () => {
     let totalAmount = 0;
-    for(const items in cartItems) {
-      let itemInfor = products.find(product => product._id === items)
-      for(const item in cartItems[items]) {
+    for (const items in cartItems) {
+      let itemInfor = products.find((product) => product._id === items);
+      for (const item in cartItems[items]) {
         try {
-          if(cartItems[items][item] > 0) {
-            totalAmount += itemInfor.price * cartItems[items][item]
+          if (cartItems[items][item] > 0) {
+            totalAmount += itemInfor.price * cartItems[items][item];
           }
-        } catch(e) {}
+        } catch (e) {}
       }
     }
     return totalAmount;
-  }
+  };
 
   const value = {
     products,
@@ -118,7 +121,7 @@ const ShopContextProvider = (props) => {
     getCartCount,
     updateQuantity,
     getCartAmount,
-    navigate
+    navigate,    
   };
 
   return (
