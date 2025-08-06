@@ -176,7 +176,6 @@ const ShopContextProvider = (props) => {
     getCartAmount,
     navigate,    
     removeSelectedItems,
-    clearCart
   };
 
   return (

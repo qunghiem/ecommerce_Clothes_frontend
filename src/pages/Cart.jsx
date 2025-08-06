@@ -12,12 +12,11 @@ const Cart = () => {
     cartItems, 
     updateQuantity,
     removeSelectedItems,
-    clearCart,
     navigate , 
   } = useContext(ShopContext);
 
   const [cartData, setCartData] = useState([]);
-  const [selectedItems, setSelectedItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);//item duoc tick
   const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
@@ -82,19 +81,13 @@ const Cart = () => {
     setSelectAll(false);
   };
 
-  const handleClearCart = () => {
-    clearCart();
-    setSelectedItems([]);
-    setSelectAll(false);
-  };
-
   if (cartData.length === 0) {
     return (
-      <div className="border-t pt-14 text-center py-20">
+      <div className="border-t pt-14 py-20">
         <div className="text-2xl mb-3">
           <Title text1={"YOUR"} text2={"CART"} />
         </div>
-        <div className="text-gray-500">
+        <div className="text-gray-500 text-center">
           <p className="text-lg mb-4">Giỏ hàng của bạn đang trống</p>
           <Link 
             to="/collection" 
@@ -141,12 +134,6 @@ const Cart = () => {
               Xóa đã chọn ({selectedItems.length})
             </button>
           )}
-          {/* <button 
-            onClick={handleClearCart}
-            className="bg-gray-500 text-white px-4 py-2 text-sm rounded hover:bg-gray-600 transition-colors"
-          >
-            Xóa tất cả
-          </button> */}
         </div>
       </div>
 
