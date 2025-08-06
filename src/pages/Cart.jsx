@@ -116,7 +116,7 @@ const Cart = () => {
               onChange={(e) => handleSelectAll(e.target.checked)}
               className="w-4 h-4"
             />
-            <span className="text-sm">Chọn tất cả ({cartData.length} sản phẩm)</span>
+            <span className="text-sm">Sellect All ({cartData.length} {cartData.length>1 ? "Products" : "Product"})</span>
           </label>
           {selectedItems.length > 0 && (
             <span className="text-sm text-blue-600">
@@ -144,15 +144,14 @@ const Cart = () => {
             (product) => product._id === item._id
           );
           const isSelected = isItemSelected(item._id, item.size);
-          
+
           return (
             <div
-              key={index}
+              key={index} 
               className={`py-4 border-t border-b text-gray-700 grid grid-cols-[auto_4fr_0.5fr_0.5fr] sm:grid-cols-[auto_4fr_2fr_0.5fr] items-center gap-4 ${
                 isSelected ? 'bg-blue-50' : ''
               }`}
             >
-              {/* Checkbox */}
               <input 
                 type="checkbox"
                 checked={isSelected}
@@ -183,8 +182,8 @@ const Cart = () => {
                 </div>
               </Link>
 
-              {/* Quantity Input */}
               <input
+                key={`quantity_${index}`} 
                 onChange={(e) =>
                   e.target.value === "" || e.target.value === "0"
                     ? null
@@ -197,10 +196,9 @@ const Cart = () => {
                 className="border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1 text-center"
                 type="number"
                 min={1}
-                defaultValue={item.quantity}
-              />
-
-              {/* Delete Button */}
+                value={item.quantity} 
+                />
+              {/* XÓA  */}
               <img
                 onClick={() => updateQuantity(item._id, item.size, 0, true)}
                 src={assets.bin_icon}
