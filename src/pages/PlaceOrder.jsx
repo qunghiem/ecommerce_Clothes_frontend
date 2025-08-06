@@ -9,65 +9,71 @@ const PlaceOrder = () => {
     const [method, setMethod] = useState("cod");
     const { navigate } = useContext(ShopContext);
 
+     const handleSubmit = (e) => {
+        e.preventDefault(); 
+        
+        navigate('/orders');
+    };
   return (
-    <div className="flex flex-col sm:flex-row justify-between gap-4 pt-5 sm:pt-14 min-h-[80vh] border-t">
+    <form onSubmit={handleSubmit}>
+      <div className="flex flex-col sm:flex-row justify-between gap-4 pt-5 sm:pt-14 min-h-[80vh] border-t">
       {/* left  */}
       <div className="flex flex-col gap-4 w-full sm:max-w-[480px]">
         <div className="text-xl sm:text-2xl my-3">
           <Title text1={"DELIVERY"} text2={"INFORMATION"} />
         </div>
         <div className="flex gap-3">
-          <input
+          <input required
             type="text"
             placeholder="First name"
             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
           />
-          <input
+          <input required
             type="text"
             placeholder="Last name"
             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
           />
         </div>
-        <input
+        <input required
           type="email"
           placeholder="Email address"
           className="border border-gray-300 rounded py-1.5 px-3.5 w-full"
         />
-        <input
+        <input required
           type="text"
           placeholder="Street"
           className="border border-gray-300 rounded py-1.5 px-3.5 w-full"
         />
         <div className="flex gap-3">
-          <input
+          <input required
             type="text"
             placeholder="City"
             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
           />
-          <input
+          <input required
             type="text"
             placeholder="State"
             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
           />
         </div>
         <div className="flex gap-3">
-          <input
+          <input required
             type="text"
             placeholder="Zip code"
             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
           />
-          <input
+          <input required
             type="text"
             placeholder="Country"
             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
           />
         </div>
-        <input
+        <input required
             type="number"
             placeholder="Phone"
             className="border border-gray-300 rounded py-1.5 px-3.5 w-full"
           />
-      </div>
+      </div> 
 
       {/* right side  */}
       <div className="mt-8">
@@ -92,12 +98,13 @@ const PlaceOrder = () => {
             </div>
         </div>
         <div className="w-full text-end mt-8">
-        <button onClick={()=>navigate('/orders')} className="bg-black text-white px-16 py-3 text-sm">PLACE ORDER</button>
+        <button type="submit" className="bg-black text-white px-16 py-3 text-sm">PLACE ORDER</button>
       </div>
       </div>
 
       
     </div>
+    </form>
   );
 };
 
