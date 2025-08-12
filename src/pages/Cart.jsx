@@ -7,7 +7,8 @@ import { assets } from "../assets/assets";
 import CartTotal from "../components/CartTotal";
 import { Link } from "react-router-dom";
 import { selectProducts, selectCurrency } from '../store/slices/shopSlice';
-import { selectCartItems, updateQuantity, removeSelectedItems } from '../store/slices/cartSlice';
+import { selectCartItems, selectCurrentUserId, updateQuantity, removeSelectedItems } from '../store/slices/cartSlice';
+import { selectIsAuthenticated } from '../store/slices/authSlice';
 
 const Cart = () => {
     const dispatch = useDispatch();
@@ -15,12 +16,19 @@ const Cart = () => {
     const products = useSelector(selectProducts);
     const currency = useSelector(selectCurrency);
     const cartItems = useSelector(selectCartItems);
+    const currentUserId = useSelector(selectCurrentUserId);
+    const isAuthenticated = useSelector(selectIsAuthenticated);
 
     const [cartData, setCartData] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
     const [selectAll, setSelectAll] = useState(false);
 
     useEffect(() => {
+        if (!isAuthenticated || !currentUserId) {
+            setCartData([]);
+            return;
+        }
+
         const tempData = [];
         for (const items in cartItems) {
             for (const size in cartItems[items]) {
@@ -34,7 +42,7 @@ const Cart = () => {
             }
         }
         setCartData(tempData);
-    }, [cartItems]);
+    }, [cartItems, isAuthenticated, currentUserId]);
 
     // Handle select individual item
     const handleSelectItem = (itemId, size, isChecked) => {
@@ -100,20 +108,69 @@ const Cart = () => {
         }
     };
 
+    // Show login prompt if user is not authenticated
+    if (!isAuthenticated) {
+        return (
+            <div className="border-t pt-14 py-20">
+                <div className="text-2xl mb-3">
+                    <Title text1={"YOUR"} text2={"CART"} />
+                </div>
+                <div className="text-center">
+                    <div className="max-w-md mx-auto">
+                        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Bạn cần đăng nhập</h3>
+                        <p className="text-gray-500 mb-6">
+                            Vui lòng đăng nhập để xem giỏ hàng và thực hiện mua sắm
+                        </p>
+                        <div className="flex gap-3 justify-center">
+                            <Link 
+                                to="/login" 
+                                className="bg-black text-white px-6 py-3 text-sm hover:bg-gray-700 transition-colors"
+                            >
+                                ĐĂNG NHẬP
+                            </Link>
+                            <Link 
+                                to="/collection" 
+                                className="bg-gray-200 text-gray-700 px-6 py-3 text-sm hover:bg-gray-300 transition-colors"
+                            >
+                                XEM SẢN PHẨM
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show empty cart if authenticated user has no items
     if (cartData.length === 0) {
         return (
             <div className="border-t pt-14 py-20">
                 <div className="text-2xl mb-3">
                     <Title text1={"YOUR"} text2={"CART"} />
                 </div>
-                <div className="text-gray-500 text-center">
-                    <p className="text-lg mb-4">Giỏ hàng của bạn đang trống</p>
-                    <Link 
-                        to="/collection" 
-                        className="bg-black text-white px-6 py-3 text-sm hover:bg-gray-700 transition-colors"
-                    >
-                        TIẾP TỤC MUA SẮM
-                    </Link>
+                <div className="text-center">
+                    <div className="max-w-md mx-auto">
+                        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Giỏ hàng trống</h3>
+                        <p className="text-gray-500 mb-6">
+                            Giỏ hàng của bạn đang trống. Hãy khám phá các sản phẩm tuyệt vời!
+                        </p>
+                        <Link 
+                            to="/collection" 
+                            className="bg-black text-white px-6 py-3 text-sm hover:bg-gray-700 transition-colors"
+                        >
+                            TIẾP TỤC MUA SẮM
+                        </Link>
+                    </div>
                 </div>
             </div>
         );

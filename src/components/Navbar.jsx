@@ -4,7 +4,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { assets } from '../assets/assets';
 import { setShowSearch } from '../store/slices/uiSlice';
 import { selectCartCount } from '../store/slices/cartSlice';
-import { selectUser, selectIsAuthenticated, logout } from '../store/slices/authSlice';
+import { selectUser, selectIsAuthenticated, logoutUser } from '../store/slices/authSlice';
 
 const Navbar = () => {
   const [visible, setVisible] = useState(false);
@@ -22,7 +22,7 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutUser());
     setShowProfileDropdown(false);
     navigate('/');
   };

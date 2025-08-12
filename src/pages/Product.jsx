@@ -1,17 +1,20 @@
 // src/pages/Product.jsx
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { assets } from "../assets/assets";
 import RelatedProducts from "../components/RelatedProducts";
 import { selectProducts, selectCurrency } from '../store/slices/shopSlice';
+import { selectIsAuthenticated } from '../store/slices/authSlice';
 import { addToCart } from '../store/slices/cartSlice';
 
 const Product = () => {
     const { productId } = useParams();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const products = useSelector(selectProducts);
     const currency = useSelector(selectCurrency);
+    const isAuthenticated = useSelector(selectIsAuthenticated);
 
     const [productData, setProductData] = useState(false);
     const [image, setImage] = useState("");
@@ -28,6 +31,17 @@ const Product = () => {
     };
 
     const handleAddToCart = () => {
+        if (!isAuthenticated) {
+            // Redirect to login page if not authenticated
+            navigate('/login', { state: { from: { pathname: `/product/${productId}` } } });
+            return;
+        }
+
+        if (!size) {
+            // Size validation is handled in the cartSlice
+            return;
+        }
+
         dispatch(addToCart({ itemId: productData._id, size }));
     };
 
@@ -95,12 +109,27 @@ const Product = () => {
                             ))}
                         </div>
                     </div>
+
+                    {/* Login prompt for non-authenticated users */}
+                    {!isAuthenticated && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <p className="text-blue-800 text-sm">
+                                <span className="font-medium">Đăng nhập để mua hàng:</span> Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng và đặt hàng.
+                            </p>
+                        </div>
+                    )}
+
                     <button 
                         onClick={handleAddToCart} 
-                        className="bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
+                        className={`px-8 py-3 text-sm text-white transition-colors ${
+                            isAuthenticated 
+                                ? 'bg-black hover:bg-gray-700 active:bg-gray-800' 
+                                : 'bg-blue-600 hover:bg-blue-700'
+                        }`}
                     >
-                        ADD TO CART
+                        {isAuthenticated ? 'ADD TO CART' : 'ĐĂNG NHẬP ĐỂ MUA HÀNG'}
                     </button>
+                    
                     <hr className="mt-8 sm:w-4/5" />
                     <div className="text-sm text-gray-500 mt-5 flex flex-col gap-1">
                         <p>100% Original product.</p>

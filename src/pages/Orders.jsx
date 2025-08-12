@@ -14,7 +14,6 @@ const Orders = () => {
   const user = useSelector(selectUser);
   const orders = useSelector(selectCurrentUserOrders);
 
-  // Initialize orders when component mounts
   useEffect(() => {
     if (user?.id) {
       dispatch(initializeOrders(user.id));
@@ -41,17 +40,17 @@ const Orders = () => {
   const getStatusText = (status) => {
     switch (status) {
       case 'confirmed':
-        return 'Đã xác nhận';
+        return 'Confirmed';
       case 'processing':
-        return 'Đang xử lý';
+        return 'Processing';
       case 'shipped':
-        return 'Đang giao hàng';
+        return 'Shipped';
       case 'delivered':
-        return 'Đã giao hàng';
+        return 'Delivered';
       case 'cancelled':
-        return 'Đã hủy';
+        return 'Cancelled';
       default:
-        return 'Đang xử lý';
+        return 'Processing';
     }
   };
 
@@ -59,7 +58,7 @@ const Orders = () => {
     return (
       <div className="border-t pt-16">
         <div className="text-center py-20">
-          <p className="text-gray-500">Vui lòng đăng nhập để xem đơn hàng</p>
+          <p className="text-gray-500">Please log in to view your orders</p>
         </div>
       </div>
     );
@@ -68,7 +67,7 @@ const Orders = () => {
   return (
     <div className="border-t pt-16">
       <div className="text-2xl mb-6">
-        <Title text1={"ĐỠN HÀNG"} text2={"CỦA TÔI"} />
+        <Title text1={"MY"} text2={"ORDERS"} />
       </div>
 
       {orders.length > 0 ? (
@@ -78,12 +77,12 @@ const Orders = () => {
               {/* Order Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b">
                 <div>
-                  <h3 className="font-semibold text-lg">Đơn hàng #{order.id}</h3>
+                  <h3 className="font-semibold text-lg">Order #{order.id}</h3>
                   <p className="text-sm text-gray-500">
-                    Đặt ngày: {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                    Order date: {new Date(order.createdAt).toLocaleDateString('en-US')}
                   </p>
                   <p className="text-sm text-gray-500">
-                    Dự kiến giao: {new Date(order.estimatedDelivery).toLocaleDateString('vi-VN')}
+                    Estimated delivery: {new Date(order.estimatedDelivery).toLocaleDateString('en-US')}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 mt-2 sm:mt-0">
@@ -96,7 +95,7 @@ const Orders = () => {
                       {currency}{order.totalAmount}
                     </p>
                     <p className="text-sm text-gray-500 capitalize">
-                      {order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng' : order.paymentMethod}
+                      {order.paymentMethod === 'cod' ? 'Cash on delivery' : order.paymentMethod}
                     </p>
                   </div>
                 </div>
@@ -124,7 +123,7 @@ const Orders = () => {
                         </Link>
                         <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                           <span>Size: {orderItem.size}</span>
-                          <span>Số lượng: {orderItem.quantity}</span>
+                          <span>Quantity: {orderItem.quantity}</span>
                           <span className="font-medium">
                             {currency}{productData?.price}
                           </span>
@@ -138,7 +137,7 @@ const Orders = () => {
               {/* Delivery Info */}
               {order.deliveryInfo && (
                 <div className="mt-4 pt-4 border-t">
-                  <h4 className="font-medium mb-2">Thông tin giao hàng:</h4>
+                  <h4 className="font-medium mb-2">Delivery information:</h4>
                   <div className="text-sm text-gray-600">
                     <p>{order.deliveryInfo.firstName} {order.deliveryInfo.lastName}</p>
                     <p>{order.deliveryInfo.email}</p>
@@ -152,19 +151,19 @@ const Orders = () => {
               {/* Order Actions */}
               <div className="mt-4 pt-4 border-t flex gap-3">
                 <button className="px-4 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50">
-                  Theo dõi đơn hàng
+                  Track order
                 </button>
                 {order.status === 'confirmed' && (
                   <button 
                     onClick={() => dispatch(updateOrderStatus({ orderId: order.id, status: 'cancelled' }))}
                     className="px-4 py-2 border border-red-300 text-red-600 rounded text-sm hover:bg-red-50"
                   >
-                    Hủy đơn hàng
+                    Cancel order
                   </button>
                 )}
                 {order.status === 'delivered' && (
                   <button className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
-                    Mua lại
+                    Buy again
                   </button>
                 )}
               </div>
@@ -180,15 +179,15 @@ const Orders = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có đơn hàng nào</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
               <p className="text-gray-500 mb-6">
-                Bạn chưa có đơn hàng nào. Hãy khám phá các sản phẩm và đặt hàng ngay!
+                You don’t have any orders yet. Discover our products and order now!
               </p>
               <Link 
                 to="/collection" 
                 className="inline-flex items-center px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
               >
-                Khám phá sản phẩm
+                Browse products
               </Link>
             </div>
           </div>

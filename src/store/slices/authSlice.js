@@ -129,12 +129,6 @@ const authSlice = createSlice({
         toast.success('Cập nhật thông tin thành công!', { autoClose: 2000 });
       }
     },
-
-    // Initialize user data on app load
-    initializeUserData: (state, action) => {
-      const userId = action.payload;
-      // This will trigger cart and orders initialization via components
-    },
   },
 });
 
@@ -194,7 +188,7 @@ export const registerUser = (userData) => (dispatch, getState) => {
       newUser: newUser,
     }));
     
-    // Initialize cart and orders for this new user
+    // Initialize cart and orders for this new user (they will be empty initially)
     dispatch({ type: 'cart/initializeCart', payload: newUser.id });
     dispatch({ type: 'orders/initializeOrders', payload: newUser.id });
   }, 1000);
@@ -208,6 +202,10 @@ export const initializeApp = () => (dispatch, getState) => {
     // Initialize cart and orders for existing logged-in user
     dispatch({ type: 'cart/initializeCart', payload: user.id });
     dispatch({ type: 'orders/initializeOrders', payload: user.id });
+  } else {
+    // If no user is logged in, ensure cart is empty
+    dispatch({ type: 'cart/clearCartOnLogout' });
+    dispatch({ type: 'orders/clearOrdersOnLogout' });
   }
 };
 
@@ -230,8 +228,7 @@ export const {
   registerFailure,
   logout, 
   clearError,
-  updateProfile,
-  initializeUserData
+  updateProfile
 } = authSlice.actions;
 
 // Selectors

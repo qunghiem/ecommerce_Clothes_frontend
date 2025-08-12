@@ -2,10 +2,12 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { toast } from 'react-toastify';
 
-// Load cart from localStorage
-const loadCartFromStorage = () => {
+// Load cart from localStorage for specific user
+const loadCartFromStorage = (userId = null) => {
   try {
-    const storedCart = localStorage.getItem('cart');
+    if (!userId) return {}; // Return empty cart if no user
+    const cartKey = `cart_${userId}`;
+    const storedCart = localStorage.getItem(cartKey);
     return storedCart ? JSON.parse(storedCart) : {};
   } catch (error) {
     console.error('Error loading cart from localStorage:', error);
@@ -13,28 +15,61 @@ const loadCartFromStorage = () => {
   }
 };
 
-// Save cart to localStorage
-const saveCartToStorage = (cartItems) => {
+// Save cart to localStorage for specific user
+const saveCartToStorage = (cartItems, userId = null) => {
   try {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
+    if (!userId) return; // Don't save if no user
+    const cartKey = `cart_${userId}`;
+    localStorage.setItem(cartKey, JSON.stringify(cartItems));
   } catch (error) {
     console.error('Error saving cart to localStorage:', error);
   }
 };
 
+// Remove cart from localStorage for specific user
+const removeCartFromStorage = (userId) => {
+  try {
+    if (!userId) return;
+    const cartKey = `cart_${userId}`;
+    localStorage.removeItem(cartKey);
+  } catch (error) {
+    console.error('Error removing cart from localStorage:', error);
+  }
+};
+
 const initialState = {
-  cartItems: loadCartFromStorage(),
+  cartItems: {},
+  currentUserId: null,
 };
 
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
+    // Initialize cart when user logs in
+    initializeCart: (state, action) => {
+      const userId = action.payload;
+      state.currentUserId = userId;
+      state.cartItems = loadCartFromStorage(userId);
+    },
+
+    // Clear cart when user logs out
+    clearCartOnLogout: (state) => {
+      state.cartItems = {};
+      state.currentUserId = null;
+    },
+
     addToCart: (state, action) => {
       const { itemId, size } = action.payload;
       
       if (!size) {
         toast.error("Select Product Size");
+        return;
+      }
+
+      // Don't allow adding to cart if user is not logged in
+      if (!state.currentUserId) {
+        toast.error("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
         return;
       }
 
@@ -51,7 +86,7 @@ const cartSlice = createSlice({
       }
 
       state.cartItems = cartData;
-      saveCartToStorage(cartData);
+      saveCartToStorage(cartData, state.currentUserId);
       
       toast.success("Thêm vào giỏ hàng thành công!", {
         autoClose: 1500,
@@ -59,6 +94,8 @@ const cartSlice = createSlice({
     },
 
     updateQuantity: (state, action) => {
+      if (!state.currentUserId) return;
+
       const { itemId, size, quantity } = action.payload;
       
       const cartData = { ...state.cartItems };
@@ -73,12 +110,14 @@ const cartSlice = createSlice({
       }
 
       state.cartItems = cartData;
-      saveCartToStorage(cartData);
+      saveCartToStorage(cartData, state.currentUserId);
       
       toast.success("Cập nhật giỏ hàng thành công!", { autoClose: 1500 });
     },
 
     removeFromCart: (state, action) => {
+      if (!state.currentUserId) return;
+
       const { itemId, size } = action.payload;
       const cartData = { ...state.cartItems };
 
@@ -91,10 +130,12 @@ const cartSlice = createSlice({
       }
 
       state.cartItems = cartData;
-      saveCartToStorage(cartData);
+      saveCartToStorage(cartData, state.currentUserId);
     },
 
     removeSelectedItems: (state, action) => {
+      if (!state.currentUserId) return;
+
       const selectedItems = action.payload;
       
       if (selectedItems.length === 0) {
@@ -115,37 +156,57 @@ const cartSlice = createSlice({
       });
       
       state.cartItems = cartData;
-      saveCartToStorage(cartData);
+      saveCartToStorage(cartData, state.currentUserId);
       
       toast.success(`Đã xóa ${selectedItems.length} sản phẩm khỏi giỏ hàng!`, { autoClose: 1500 });
     },
 
     clearCart: (state) => {
+      if (!state.currentUserId) return;
+
       if (Object.keys(state.cartItems).length === 0) {
         toast.warning("Giỏ hàng trống!", { autoClose: 1500 });
         return;
       }
 
       state.cartItems = {};
-      saveCartToStorage({});
+      saveCartToStorage({}, state.currentUserId);
       
       toast.success("Đã xóa tất cả sản phẩm khỏi giỏ hàng!", { autoClose: 1500 });
+    },
+
+    // New action to completely remove cart data for a user
+    deleteUserCart: (state, action) => {
+      const userId = action.payload;
+      removeCartFromStorage(userId);
+      
+      // If it's the current user's cart, clear it from state too
+      if (state.currentUserId === userId) {
+        state.cartItems = {};
+      }
     },
   },
 });
 
 export const { 
+  initializeCart,
+  clearCartOnLogout,
   addToCart, 
   updateQuantity, 
   removeFromCart, 
   removeSelectedItems, 
-  clearCart 
+  clearCart,
+  deleteUserCart
 } = cartSlice.actions;
 
 // Selectors
 export const selectCartItems = (state) => state.cart.cartItems;
+export const selectCurrentUserId = (state) => state.cart.currentUserId;
 
 export const selectCartCount = (state) => {
+  // Return 0 if user is not logged in
+  if (!state.cart.currentUserId) return 0;
+  
   let totalCount = 0;
   const cartItems = state.cart.cartItems;
   
@@ -164,6 +225,9 @@ export const selectCartCount = (state) => {
 };
 
 export const selectCartAmount = (state) => {
+  // Return 0 if user is not logged in
+  if (!state.cart.currentUserId) return 0;
+  
   let totalAmount = 0;
   const cartItems = state.cart.cartItems;
   const products = state.shop.products;
