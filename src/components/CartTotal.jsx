@@ -1,9 +1,14 @@
-import React, { useContext } from "react";
-import { ShopContext } from "../context/ShopContext";
+// src/components/CartTotal.jsx
+import React from "react";
+import { useSelector } from 'react-redux';
+import { selectCurrency, selectDeliveryFee } from '../store/slices/shopSlice';
+import { selectCartAmount } from '../store/slices/cartSlice';
 import Title from "./Title";
 
 const CartTotal = () => {
-    const { currency, delivery_fee,  getCartAmount } = useContext(ShopContext);
+    const currency = useSelector(selectCurrency);
+    const deliveryFee = useSelector(selectDeliveryFee);
+    const cartAmount = useSelector(selectCartAmount);
 
     return (
         <div className="w-full">
@@ -11,24 +16,24 @@ const CartTotal = () => {
                 <Title text1={"CART"} text2={"TOTALS"}/>
             </div>
             <div className="flex flex-col gap-2 mt-2 text-sm">
-                <div className="flex justify-between ">
+                <div className="flex justify-between">
                     <p>SubTotal</p>
-                    <p>{currency} {getCartAmount()}.00</p>
+                    <p>{currency} {cartAmount}.00</p>
                 </div>
                 <hr />
-                <div className="flex justify-between ">
+                <div className="flex justify-between">
                     <p>Shipping Fee</p>
-                    <p>{currency} {delivery_fee}.00</p>
+                    <p>{currency} {deliveryFee}.00</p>
                 </div>
                 <hr />
-                 <div className="flex justify-between ">
+                <div className="flex justify-between">
                     <b>Total</b>
-                    <b>{currency} {getCartAmount() === 0 ? 0 : getCartAmount()+delivery_fee}.00</b>
+                    <b>{currency} {cartAmount === 0 ? 0 : cartAmount + deliveryFee}.00</b>
                 </div>
                 <hr />
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default CartTotal;
