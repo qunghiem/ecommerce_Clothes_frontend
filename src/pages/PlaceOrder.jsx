@@ -18,7 +18,6 @@ const PlaceOrder = () => {
     const deliveryFee = useSelector(selectDeliveryFee);
     const currency = useSelector(selectCurrency);
     
-    // Get selected items from navigation state
     const selectedItems = location.state?.selectedItems || [];
     const selectedTotals = location.state?.selectedTotals || { subtotal: 0, total: 0 };
     
@@ -46,21 +45,18 @@ const PlaceOrder = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Check if we have selected items
         if (!selectedItems || selectedItems.length === 0) {
-            alert("Không có sản phẩm nào được chọn để đặt hàng!");
+            alert("No products selected for ordering!");
             navigate('/cart');
             return;
         }
 
-        // Use selected items for order
         const orderItems = selectedItems.map(item => ({
             _id: item._id,
             size: item.size,
             quantity: item.quantity,
         }));
 
-        // Create order with selected items total
         const orderData = {
             paymentMethod: method,
             totalAmount: selectedTotals.total,
@@ -72,7 +68,6 @@ const PlaceOrder = () => {
             deliveryInfo
         }));
 
-        // Remove only the selected items from cart
         const selectedItemsForRemoval = selectedItems.map(item => ({
             itemId: item._id,
             size: item.size
@@ -80,22 +75,20 @@ const PlaceOrder = () => {
         
         dispatch(removeSelectedItems(selectedItemsForRemoval));
         
-        // Navigate to orders page
         navigate('/orders');
     };
 
-    // Check if no items are selected (redirect to cart)
     if (!selectedItems || selectedItems.length === 0) {
         return (
             <div className="border-t pt-14 py-20">
                 <div className="text-center">
-                    <h2 className="text-2xl font-semibold mb-4">Không có sản phẩm được chọn</h2>
-                    <p className="text-gray-600 mb-6">Vui lòng quay lại giỏ hàng và chọn sản phẩm để đặt hàng</p>
+                    <h2 className="text-2xl font-semibold mb-4">No products selected</h2>
+                    <p className="text-gray-600 mb-6">Please go back to the cart and select products to order</p>
                     <button 
                         onClick={() => navigate('/cart')}
                         className="bg-black text-white px-6 py-3 text-sm hover:bg-gray-800"
                     >
-                        Quay lại giỏ hàng
+                        Back to cart
                     </button>
                 </div>
             </div>
@@ -105,10 +98,10 @@ const PlaceOrder = () => {
     return (
         <form onSubmit={handleSubmit}>
             <div className="flex flex-col sm:flex-row justify-between gap-4 pt-5 sm:pt-14 min-h-[80vh] border-t">
-                {/* left */}
+                {/* Left */}
                 <div className="flex flex-col gap-4 w-full sm:max-w-[480px]">
                     <div className="text-xl sm:text-2xl my-3">
-                        <Title text1={"THÔNG TIN"} text2={"GIAO HÀNG"} />
+                        <Title text1={"DELIVERY"} text2={"INFORMATION"} />
                     </div>
                     <div className="flex gap-3">
                         <input 
@@ -117,7 +110,7 @@ const PlaceOrder = () => {
                             name="firstName"
                             value={deliveryInfo.firstName}
                             onChange={handleInputChange}
-                            placeholder="Họ"
+                            placeholder="First name"
                             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
                         />
                         <input 
@@ -126,7 +119,7 @@ const PlaceOrder = () => {
                             name="lastName"
                             value={deliveryInfo.lastName}
                             onChange={handleInputChange}
-                            placeholder="Tên"
+                            placeholder="Last name"
                             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
                         />
                     </div>
@@ -136,7 +129,7 @@ const PlaceOrder = () => {
                         name="email"
                         value={deliveryInfo.email}
                         onChange={handleInputChange}
-                        placeholder="Địa chỉ email"
+                        placeholder="Email address"
                         className="border border-gray-300 rounded py-1.5 px-3.5 w-full"
                     />
                     <input 
@@ -145,7 +138,7 @@ const PlaceOrder = () => {
                         name="street"
                         value={deliveryInfo.street}
                         onChange={handleInputChange}
-                        placeholder="Địa chỉ đường"
+                        placeholder="Street address"
                         className="border border-gray-300 rounded py-1.5 px-3.5 w-full"
                     />
                     <div className="flex gap-3">
@@ -155,7 +148,7 @@ const PlaceOrder = () => {
                             name="city"
                             value={deliveryInfo.city}
                             onChange={handleInputChange}
-                            placeholder="Thành phố"
+                            placeholder="City"
                             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
                         />
                         <input 
@@ -164,7 +157,7 @@ const PlaceOrder = () => {
                             name="state"
                             value={deliveryInfo.state}
                             onChange={handleInputChange}
-                            placeholder="Tỉnh/Thành"
+                            placeholder="State/Province"
                             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
                         />
                     </div>
@@ -175,7 +168,7 @@ const PlaceOrder = () => {
                             name="zipCode"
                             value={deliveryInfo.zipCode}
                             onChange={handleInputChange}
-                            placeholder="Mã bưu điện"
+                            placeholder="Postal code"
                             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
                         />
                         <input 
@@ -184,7 +177,7 @@ const PlaceOrder = () => {
                             name="country"
                             value={deliveryInfo.country}
                             onChange={handleInputChange}
-                            placeholder="Quốc gia"
+                            placeholder="Country"
                             className="border border-gray-300 rounded py-1.5 px-3.5 w-1/2"
                         />
                     </div>
@@ -194,17 +187,17 @@ const PlaceOrder = () => {
                         name="phone"
                         value={deliveryInfo.phone}
                         onChange={handleInputChange}
-                        placeholder="Số điện thoại"
+                        placeholder="Phone number"
                         className="border border-gray-300 rounded py-1.5 px-3.5 w-full"
                     />
                 </div> 
 
-                {/* right side */}
+                {/* Right side */}
                 <div className="mt-8">
                     {/* Selected Items Summary */}
                     <div className="mb-8">
                         <div className="text-xl mb-4">
-                            <Title text1={"ĐƠN HÀNG"} text2={"CỦA BẠN"} />
+                            <Title text1={"YOUR"} text2={"ORDER"} />
                         </div>
                         <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
                             <div className="space-y-3">
@@ -242,7 +235,7 @@ const PlaceOrder = () => {
                             </div>
                             <div className="flex flex-col gap-2 mt-2 text-sm">
                                 <div className="flex justify-between">
-                                    <p>SubTotal ({selectedItems.length} items)</p>
+                                    <p>Subtotal ({selectedItems.length} items)</p>
                                     <p>{currency} {selectedTotals.subtotal}.00</p>
                                 </div>
                                 <hr />
@@ -262,7 +255,7 @@ const PlaceOrder = () => {
 
                     {/* Payment Method */}
                     <div className="mt-12">
-                        <Title text1={"PHƯƠNG THỨC"} text2={"THANH TOÁN"}/>
+                        <Title text1={"PAYMENT"} text2={"METHOD"}/>
                         <div className="flex flex-col lg:flex-row gap-3">
                             <div onClick={() => setMethod("stripe")} className="flex items-center gap-3 border p-2 px-3 cursor-pointer">
                                 <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'stripe' ? "bg-green-500" : ""}`}></p>
@@ -274,14 +267,14 @@ const PlaceOrder = () => {
                             </div>
                             <div onClick={() => setMethod("cod")} className="flex items-center gap-3 border p-2 px-3 cursor-pointer">
                                 <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'cod' ? "bg-green-500" : ""}`}></p>
-                                <p className="text-gray-500 text-sm font-medium mx-4">THANH TOÁN KHI NHẬN HÀNG</p>
+                                <p className="text-gray-500 text-sm font-medium mx-4">Cash on Delivery</p>
                             </div>
                         </div>
                     </div>
 
                     <div className="w-full text-end mt-8">
                         <button type="submit" className="bg-black text-white px-16 py-3 text-sm hover:bg-gray-800 transition-colors">
-                            ĐẶT HÀNG ({selectedItems.length} sản phẩm)
+                            PLACE ORDER ({selectedItems.length} items)
                         </button>
                     </div>
                 </div>
