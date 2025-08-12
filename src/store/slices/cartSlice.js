@@ -1,3 +1,4 @@
+// src/store/slices/cartSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 import { toast } from 'react-toastify';
 
@@ -58,13 +59,8 @@ const cartSlice = createSlice({
     },
 
     updateQuantity: (state, action) => {
-      const { itemId, size, quantity, confirm = false } = action.payload;
+      const { itemId, size, quantity } = action.payload;
       
-      if (confirm && quantity === 0) {
-        // This will be handled in the component with window.confirm
-        return;
-      }
-
       const cartData = { ...state.cartItems };
 
       if (quantity === 0) {
@@ -174,13 +170,15 @@ export const selectCartAmount = (state) => {
   
   for (const items in cartItems) {
     let itemInfo = products.find((product) => product._id === items);
-    for (const item in cartItems[items]) {
-      try {
-        if (cartItems[items][item] > 0) {
-          totalAmount += itemInfo.price * cartItems[items][item];
+    if (itemInfo) {
+      for (const item in cartItems[items]) {
+        try {
+          if (cartItems[items][item] > 0) {
+            totalAmount += itemInfo.price * cartItems[items][item];
+          }
+        } catch (e) {
+          console.error('Error calculating cart amount:', e);
         }
-      } catch (e) {
-        console.error('Error calculating cart amount:', e);
       }
     }
   }

@@ -1,10 +1,9 @@
-// src/components/RelatedProducts.jsx
 import React, { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
 import { useParams } from "react-router-dom";
 import { selectProducts } from '../store/slices/shopSlice';
 import Title from "../components/Title";
-import ProductItem from "./ProductItem";
+import ProductItem from "../components/ProductItem";
 
 const RelatedProducts = ({ category, subCategory }) => {
     const products = useSelector(selectProducts);
