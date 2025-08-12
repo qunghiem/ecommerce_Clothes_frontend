@@ -1,22 +1,26 @@
 // src/pages/PlaceOrder.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import Title from "../components/Title";
-import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
-import { selectCartItems, selectCartAmount, clearCart } from '../store/slices/cartSlice';
-import { selectDeliveryFee } from '../store/slices/shopSlice';
+import { selectCartItems, removeSelectedItems } from '../store/slices/cartSlice';
+import { selectDeliveryFee, selectCurrency } from '../store/slices/shopSlice';
 import { selectUser } from '../store/slices/authSlice';
 import { addOrder } from '../store/slices/ordersSlice';
 
 const PlaceOrder = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const user = useSelector(selectUser);
     const cartItems = useSelector(selectCartItems);
-    const cartAmount = useSelector(selectCartAmount);
     const deliveryFee = useSelector(selectDeliveryFee);
+    const currency = useSelector(selectCurrency);
+    
+    // Get selected items from navigation state
+    const selectedItems = location.state?.selectedItems || [];
+    const selectedTotals = location.state?.selectedTotals || { subtotal: 0, total: 0 };
     
     const [method, setMethod] = useState("cod");
     const [deliveryInfo, setDeliveryInfo] = useState({
@@ -42,24 +46,24 @@ const PlaceOrder = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Convert cart items to order format
-        const orderItems = [];
-        for (const itemId in cartItems) {
-            for (const size in cartItems[itemId]) {
-                if (cartItems[itemId][size] > 0) {
-                    orderItems.push({
-                        _id: itemId,
-                        size: size,
-                        quantity: cartItems[itemId][size],
-                    });
-                }
-            }
+        // Check if we have selected items
+        if (!selectedItems || selectedItems.length === 0) {
+            alert("Không có sản phẩm nào được chọn để đặt hàng!");
+            navigate('/cart');
+            return;
         }
 
-        // Create order
+        // Use selected items for order
+        const orderItems = selectedItems.map(item => ({
+            _id: item._id,
+            size: item.size,
+            quantity: item.quantity,
+        }));
+
+        // Create order with selected items total
         const orderData = {
             paymentMethod: method,
-            totalAmount: cartAmount + deliveryFee,
+            totalAmount: selectedTotals.total,
         };
 
         dispatch(addOrder({
@@ -68,25 +72,30 @@ const PlaceOrder = () => {
             deliveryInfo
         }));
 
-        // Clear cart after successful order (using existing clearCart action)
-        dispatch(clearCart());
+        // Remove only the selected items from cart
+        const selectedItemsForRemoval = selectedItems.map(item => ({
+            itemId: item._id,
+            size: item.size
+        }));
+        
+        dispatch(removeSelectedItems(selectedItemsForRemoval));
         
         // Navigate to orders page
         navigate('/orders');
     };
 
-    // Check if cart is empty
-    if (Object.keys(cartItems).length === 0) {
+    // Check if no items are selected (redirect to cart)
+    if (!selectedItems || selectedItems.length === 0) {
         return (
             <div className="border-t pt-14 py-20">
                 <div className="text-center">
-                    <h2 className="text-2xl font-semibold mb-4">Giỏ hàng trống</h2>
-                    <p className="text-gray-600 mb-6">Vui lòng thêm sản phẩm vào giỏ hàng trước khi đặt hàng</p>
+                    <h2 className="text-2xl font-semibold mb-4">Không có sản phẩm được chọn</h2>
+                    <p className="text-gray-600 mb-6">Vui lòng quay lại giỏ hàng và chọn sản phẩm để đặt hàng</p>
                     <button 
-                        onClick={() => navigate('/collection')}
+                        onClick={() => navigate('/cart')}
                         className="bg-black text-white px-6 py-3 text-sm hover:bg-gray-800"
                     >
-                        Tiếp tục mua sắm
+                        Quay lại giỏ hàng
                     </button>
                 </div>
             </div>
@@ -192,9 +201,66 @@ const PlaceOrder = () => {
 
                 {/* right side */}
                 <div className="mt-8">
-                    <div className="mt-8 min-2-80">
-                        <CartTotal />
+                    {/* Selected Items Summary */}
+                    <div className="mb-8">
+                        <div className="text-xl mb-4">
+                            <Title text1={"ĐƠN HÀNG"} text2={"CỦA BẠN"} />
+                        </div>
+                        <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
+                            <div className="space-y-3">
+                                {selectedItems.map((item, index) => (
+                                    <div key={index} className="flex justify-between items-center text-sm">
+                                        <div className="flex items-center gap-3">
+                                            {item.image && (
+                                                <img 
+                                                    src={item.image[0]} 
+                                                    className="w-12 h-12 object-cover rounded"
+                                                    alt={item.name}
+                                                />
+                                            )}
+                                            <div>
+                                                <span className="font-medium">{item.name || `Product ${item._id}`}</span>
+                                                <div className="text-xs text-gray-500">
+                                                    Size: {item.size} | Qty: {item.quantity}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span className="font-medium">
+                                            {currency}{(item.price * item.quantity).toFixed(2)}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
+
+                    {/* Order Totals */}
+                    <div className="mt-8 min-w-80">
+                        <div className="w-full">
+                            <div className="text-2xl">
+                                <Title text1={"ORDER"} text2={"TOTALS"}/>
+                            </div>
+                            <div className="flex flex-col gap-2 mt-2 text-sm">
+                                <div className="flex justify-between">
+                                    <p>SubTotal ({selectedItems.length} items)</p>
+                                    <p>{currency} {selectedTotals.subtotal}.00</p>
+                                </div>
+                                <hr />
+                                <div className="flex justify-between">
+                                    <p>Shipping Fee</p>
+                                    <p>{currency} {selectedTotals.subtotal === 0 ? 0 : deliveryFee}.00</p>
+                                </div>
+                                <hr />
+                                <div className="flex justify-between">
+                                    <b>Total</b>
+                                    <b>{currency} {selectedTotals.total}.00</b>
+                                </div>
+                                <hr />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Payment Method */}
                     <div className="mt-12">
                         <Title text1={"PHƯƠNG THỨC"} text2={"THANH TOÁN"}/>
                         <div className="flex flex-col lg:flex-row gap-3">
@@ -212,9 +278,10 @@ const PlaceOrder = () => {
                             </div>
                         </div>
                     </div>
+
                     <div className="w-full text-end mt-8">
                         <button type="submit" className="bg-black text-white px-16 py-3 text-sm hover:bg-gray-800 transition-colors">
-                            ĐẶT HÀNG
+                            ĐẶT HÀNG ({selectedItems.length} sản phẩm)
                         </button>
                     </div>
                 </div>

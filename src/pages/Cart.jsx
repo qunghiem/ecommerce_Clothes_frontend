@@ -4,9 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
 import { assets } from "../assets/assets";
-import CartTotal from "../components/CartTotal";
 import { Link } from "react-router-dom";
-import { selectProducts, selectCurrency } from '../store/slices/shopSlice';
+import { selectProducts, selectCurrency, selectDeliveryFee } from '../store/slices/shopSlice';
 import { selectCartItems, selectCurrentUserId, updateQuantity, removeSelectedItems } from '../store/slices/cartSlice';
 import { selectIsAuthenticated } from '../store/slices/authSlice';
 
@@ -15,6 +14,7 @@ const Cart = () => {
     const navigate = useNavigate();
     const products = useSelector(selectProducts);
     const currency = useSelector(selectCurrency);
+    const deliveryFee = useSelector(selectDeliveryFee);
     const cartItems = useSelector(selectCartItems);
     const currentUserId = useSelector(selectCurrentUserId);
     const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -22,6 +22,12 @@ const Cart = () => {
     const [cartData, setCartData] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
     const [selectAll, setSelectAll] = useState(false);
+
+    // Calculate totals for selected items only
+    const [selectedTotals, setSelectedTotals] = useState({
+        subtotal: 0,
+        total: 0
+    });
 
     useEffect(() => {
         if (!isAuthenticated || !currentUserId) {
@@ -43,6 +49,31 @@ const Cart = () => {
         }
         setCartData(tempData);
     }, [cartItems, isAuthenticated, currentUserId]);
+
+    // Calculate totals for selected items
+    useEffect(() => {
+        let subtotal = 0;
+        
+        selectedItems.forEach(selectedItem => {
+            const cartItem = cartData.find(item => 
+                item._id === selectedItem.itemId && item.size === selectedItem.size
+            );
+            
+            if (cartItem) {
+                const productData = products.find(product => product._id === cartItem._id);
+                if (productData) {
+                    subtotal += productData.price * cartItem.quantity;
+                }
+            }
+        });
+        
+        const total = subtotal === 0 ? 0 : subtotal + deliveryFee;
+        
+        setSelectedTotals({
+            subtotal,
+            total
+        });
+    }, [selectedItems, cartData, products, deliveryFee]);
 
     // Handle select individual item
     const handleSelectItem = (itemId, size, isChecked) => {
@@ -102,10 +133,43 @@ const Cart = () => {
             );
             if (confirmed) {
                 dispatch(updateQuantity({ itemId, size, quantity }));
+                // Remove from selected items if it was selected
+                setSelectedItems(prev => prev.filter(item => 
+                    !(item.itemId === itemId && item.size === size)
+                ));
             }
         } else {
             dispatch(updateQuantity({ itemId, size, quantity }));
         }
+    };
+
+    const handleProceedToCheckout = () => {
+        if (selectedItems.length === 0) {
+            alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán!");
+            return;
+        }
+        
+        // Pass selected items with product info to checkout
+        const selectedCartData = cartData.filter(item => 
+            selectedItems.some(selected => 
+                selected.itemId === item._id && selected.size === item.size
+            )
+        ).map(item => {
+            const productData = products.find(product => product._id === item._id);
+            return {
+                ...item,
+                name: productData?.name,
+                price: productData?.price,
+                image: productData?.image
+            };
+        });
+        
+        navigate("/place-order", { 
+            state: { 
+                selectedItems: selectedCartData,
+                selectedTotals: selectedTotals
+            } 
+        });
     };
 
     // Show login prompt if user is not authenticated
@@ -288,16 +352,44 @@ const Cart = () => {
                 })}
             </div>
 
-            {/* Cart Total */}
+            {/* Cart Total - Only for selected items */}
             <div className="flex justify-end my-20">
                 <div className="w-full sm:w-[450px]">
-                    <CartTotal />
+                    {/* Custom Cart Total Component for Selected Items */}
+                    <div className="w-full">
+                        <div className="text-2xl">
+                            <Title text1={"CART"} text2={"TOTALS"}/>
+                        </div>
+                        <div className="flex flex-col gap-2 mt-2 text-sm">
+                            <div className="flex justify-between">
+                                <p>SubTotal ({selectedItems.length} items selected)</p>
+                                <p>{currency} {selectedTotals.subtotal}.00</p>
+                            </div>
+                            <hr />
+                            <div className="flex justify-between">
+                                <p>Shipping Fee</p>
+                                <p>{currency} {selectedTotals.subtotal === 0 ? 0 : deliveryFee}.00</p>
+                            </div>
+                            <hr />
+                            <div className="flex justify-between">
+                                <b>Total</b>
+                                <b>{currency} {selectedTotals.total}.00</b>
+                            </div>
+                            <hr />
+                        </div>
+                    </div>
+                    
                     <div className="w-full text-end">
                         <button
-                            onClick={() => navigate("/place-order")}
-                            className="bg-black text-white text-sm my-8 px-8 py-3 hover:bg-gray-700 transition-colors"
+                            onClick={handleProceedToCheckout}
+                            disabled={selectedItems.length === 0}
+                            className={`text-sm my-8 px-8 py-3 transition-colors ${
+                                selectedItems.length === 0 
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                    : 'bg-black text-white hover:bg-gray-700'
+                            }`}
                         >
-                            PROCEED TO CHECKOUT
+                            PROCEED TO CHECKOUT ({selectedItems.length} items)
                         </button>
                     </div>
                 </div>

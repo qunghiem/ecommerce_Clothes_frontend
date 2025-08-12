@@ -249,4 +249,24 @@ export const selectCartAmount = (state) => {
   return totalAmount;
 };
 
+// New selector to get selected cart amount
+export const selectSelectedCartAmount = (selectedItems) => (state) => {
+  if (!selectedItems || selectedItems.length === 0) return 0;
+  
+  let totalAmount = 0;
+  const products = state.shop.products;
+  
+  selectedItems.forEach(selectedItem => {
+    const productData = products.find(product => product._id === selectedItem.itemId);
+    if (productData) {
+      const cartItem = state.cart.cartItems[selectedItem.itemId]?.[selectedItem.size];
+      if (cartItem) {
+        totalAmount += productData.price * cartItem;
+      }
+    }
+  });
+  
+  return totalAmount;
+};
+
 export default cartSlice.reducer;
