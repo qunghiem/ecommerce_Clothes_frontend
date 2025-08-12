@@ -111,13 +111,7 @@ const Product = () => {
                     </div>
 
                     {/* Login prompt for non-authenticated users */}
-                    {!isAuthenticated && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                            <p className="text-blue-800 text-sm">
-                                <span className="font-medium">Đăng nhập để mua hàng:</span> Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng và đặt hàng.
-                            </p>
-                        </div>
-                    )}
+                    
 
                     <button 
                         onClick={handleAddToCart} 
@@ -127,7 +121,7 @@ const Product = () => {
                                 : 'bg-blue-600 hover:bg-blue-700'
                         }`}
                     >
-                        {isAuthenticated ? 'ADD TO CART' : 'ĐĂNG NHẬP ĐỂ MUA HÀNG'}
+                        {isAuthenticated ? 'ADD TO CART' : 'SING IN TO BUY'}
                     </button>
                     
                     <hr className="mt-8 sm:w-4/5" />

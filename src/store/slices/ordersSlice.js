@@ -83,7 +83,7 @@ const ordersSlice = createSlice({
         state.orders[orderIndex].status = status;
         saveOrdersToStorage(state.orders, state.currentUserId);
         
-        toast.success('Cập nhật trạng thái đơn hàng thành công!', { autoClose: 2000 });
+        toast.success("Order status updated successfully!", { autoClose: 2000 });
       }
     },
 

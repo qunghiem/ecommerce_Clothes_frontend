@@ -69,7 +69,7 @@ const cartSlice = createSlice({
 
       // Don't allow adding to cart if user is not logged in
       if (!state.currentUserId) {
-        toast.error("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
+        toast.error("Please log in to add products to your cart.");
         return;
       }
 
@@ -88,7 +88,7 @@ const cartSlice = createSlice({
       state.cartItems = cartData;
       saveCartToStorage(cartData, state.currentUserId);
       
-      toast.success("Thêm vào giỏ hàng thành công!", {
+      toast.success("Added to cart successfully!", {
         autoClose: 1500,
       });
     },
@@ -112,7 +112,7 @@ const cartSlice = createSlice({
       state.cartItems = cartData;
       saveCartToStorage(cartData, state.currentUserId);
       
-      toast.success("Cập nhật giỏ hàng thành công!", { autoClose: 1500 });
+      toast.success("Cart updated successfully!", { autoClose: 1500 });
     },
 
     removeFromCart: (state, action) => {

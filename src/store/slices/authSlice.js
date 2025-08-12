@@ -68,7 +68,7 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.error = null;
       saveUserToStorage(action.payload);
-      toast.success(`Chào mừng ${action.payload.name}!`, { autoClose: 2000 });
+      toast.success(`Welcome ${action.payload.name}!`, { autoClose: 2000 });
     },
     
     loginFailure: (state, action) => {
@@ -126,7 +126,7 @@ const authSlice = createSlice({
           saveUsersToStorage(state.users);
         }
         
-        toast.success('Cập nhật thông tin thành công!', { autoClose: 2000 });
+        toast.success("Information updated successfully!", { autoClose: 2000 });
       }
     },
   },
