@@ -1,9 +1,8 @@
-// src/store/store.js
 import { configureStore } from '@reduxjs/toolkit';
 import shopReducer from './slices/shopSlice';
 import cartReducer from './slices/cartSlice';
 import uiReducer from './slices/uiSlice';
-import authReducer from './slices/authSlice';
+import { default as authReducer } from './slices/authSlice';
 import ordersReducer from './slices/ordersSlice';
 
 export const store = configureStore({
@@ -21,3 +20,6 @@ export const store = configureStore({
       },
     }),
 });
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

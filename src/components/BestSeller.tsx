@@ -1,13 +1,14 @@
-// src/components/BestSeller.jsx
+// src/components/BestSeller.tsx
 import React, { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
 import { selectProducts } from '../store/slices/shopSlice';
+import { Product } from '../types';
 import Title from "./Title";
 import ProductItem from "./ProductItem";
 
-const BestSeller = () => {
+const BestSeller: React.FC = () => {
     const products = useSelector(selectProducts);
-    const [bestSeller, setBestSeller] = useState([]);
+    const [bestSeller, setBestSeller] = useState<Product[]>([]);
 
     useEffect(() => {
         const bestSellerFilter = products.filter(

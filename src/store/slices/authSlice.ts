@@ -1,9 +1,9 @@
-// src/store/slices/authSlice.js
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { toast } from 'react-toastify';
+import { AuthState, User, UserWithPassword, LoginCredentials, RegisterData } from '../../types';
 
 // Load user from localStorage
-const loadUserFromStorage = () => {
+const loadUserFromStorage = (): User | null => {
   try {
     const storedUser = localStorage.getItem('user');
     return storedUser ? JSON.parse(storedUser) : null;
@@ -14,7 +14,7 @@ const loadUserFromStorage = () => {
 };
 
 // Save user to localStorage
-const saveUserToStorage = (user) => {
+const saveUserToStorage = (user: User | null): void => {
   try {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
@@ -26,8 +26,8 @@ const saveUserToStorage = (user) => {
   }
 };
 
-// Mock users database (in real app, this would be in backend)
-const loadUsersFromStorage = () => {
+// Mock users database
+const loadUsersFromStorage = (): UserWithPassword[] => {
   try {
     const storedUsers = localStorage.getItem('users');
     return storedUsers ? JSON.parse(storedUsers) : [];
@@ -37,7 +37,7 @@ const loadUsersFromStorage = () => {
   }
 };
 
-const saveUsersToStorage = (users) => {
+const saveUsersToStorage = (users: UserWithPassword[]): void => {
   try {
     localStorage.setItem('users', JSON.stringify(users));
   } catch (error) {
@@ -45,12 +45,12 @@ const saveUsersToStorage = (users) => {
   }
 };
 
-const initialState = {
+const initialState: AuthState = {
   user: loadUserFromStorage(),
   isAuthenticated: !!loadUserFromStorage(),
   isLoading: false,
   error: null,
-  users: loadUsersFromStorage(), // Mock database
+  users: loadUsersFromStorage(),
 };
 
 const authSlice = createSlice({
@@ -62,7 +62,7 @@ const authSlice = createSlice({
       state.error = null;
     },
     
-    loginSuccess: (state, action) => {
+    loginSuccess: (state, action: PayloadAction<User>) => {
       state.isLoading = false;
       state.user = action.payload;
       state.isAuthenticated = true;
@@ -71,7 +71,7 @@ const authSlice = createSlice({
       toast.success(`Welcome ${action.payload.name}!`, { autoClose: 2000 });
     },
     
-    loginFailure: (state, action) => {
+    loginFailure: (state, action: PayloadAction<string>) => {
       state.isLoading = false;
       state.user = null;
       state.isAuthenticated = false;
@@ -84,19 +84,18 @@ const authSlice = createSlice({
       state.error = null;
     },
     
-    registerSuccess: (state, action) => {
+    registerSuccess: (state, action: PayloadAction<{ user: User; newUser: UserWithPassword }>) => {
       state.isLoading = false;
       state.user = action.payload.user;
       state.isAuthenticated = true;
       state.error = null;
-      // Add new user to mock database
       state.users.push(action.payload.newUser);
       saveUserToStorage(action.payload.user);
       saveUsersToStorage(state.users);
       toast.success('Đăng ký thành công!', { autoClose: 2000 });
     },
     
-    registerFailure: (state, action) => {
+    registerFailure: (state, action: PayloadAction<string>) => {
       state.isLoading = false;
       state.error = action.payload;
       toast.error(action.payload, { autoClose: 3000 });
@@ -114,13 +113,12 @@ const authSlice = createSlice({
       state.error = null;
     },
     
-    updateProfile: (state, action) => {
+    updateProfile: (state, action: PayloadAction<Partial<User>>) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
         saveUserToStorage(state.user);
         
-        // Update user in mock database
-        const userIndex = state.users.findIndex(u => u.id === state.user.id);
+        const userIndex = state.users.findIndex(u => u.id === state.user!.id);
         if (userIndex !== -1) {
           state.users[userIndex] = { ...state.users[userIndex], ...action.payload };
           saveUsersToStorage(state.users);
@@ -132,15 +130,28 @@ const authSlice = createSlice({
   },
 });
 
-// Async action creators (thunks)
-export const loginUser = (credentials) => (dispatch, getState) => {
+// Export actions
+export const { 
+  loginStart, 
+  loginSuccess, 
+  loginFailure,
+  registerStart,
+  registerSuccess, 
+  registerFailure,
+  logout, 
+  clearError,
+  updateProfile
+} = authSlice.actions;
+
+// Async action creators (thunks) với TypeScript
+export const loginUser = (credentials: LoginCredentials) => (dispatch: any, getState: any) => {
   dispatch(loginStart());
   
   // Simulate API call delay
   setTimeout(() => {
     const { users } = getState().auth;
     const user = users.find(
-      u => u.email === credentials.email && u.password === credentials.password
+      (u: UserWithPassword) => u.email === credentials.email && u.password === credentials.password
     );
     
     if (user) {
@@ -156,7 +167,7 @@ export const loginUser = (credentials) => (dispatch, getState) => {
   }, 1000);
 };
 
-export const registerUser = (userData) => (dispatch, getState) => {
+export const registerUser = (userData: RegisterData) => (dispatch: any, getState: any) => {
   dispatch(registerStart());
   
   // Simulate API call delay
@@ -164,7 +175,7 @@ export const registerUser = (userData) => (dispatch, getState) => {
     const { users } = getState().auth;
     
     // Check if email already exists
-    const existingUser = users.find(u => u.email === userData.email);
+    const existingUser = users.find((u: UserWithPassword) => u.email === userData.email);
     
     if (existingUser) {
       dispatch(registerFailure('Email đã được sử dụng'));
@@ -172,7 +183,7 @@ export const registerUser = (userData) => (dispatch, getState) => {
     }
     
     // Create new user
-    const newUser = {
+    const newUser: UserWithPassword = {
       id: Date.now().toString(),
       name: userData.name,
       email: userData.email,
@@ -188,14 +199,14 @@ export const registerUser = (userData) => (dispatch, getState) => {
       newUser: newUser,
     }));
     
-    // Initialize cart and orders for this new user (they will be empty initially)
+    // Initialize cart and orders for this new user
     dispatch({ type: 'cart/initializeCart', payload: newUser.id });
     dispatch({ type: 'orders/initializeOrders', payload: newUser.id });
   }, 1000);
 };
 
 // Initialize user data on app startup
-export const initializeApp = () => (dispatch, getState) => {
+export const initializeApp = () => (dispatch: any, getState: any) => {
   const { user, isAuthenticated } = getState().auth;
   
   if (isAuthenticated && user?.id) {
@@ -210,7 +221,7 @@ export const initializeApp = () => (dispatch, getState) => {
 };
 
 // Custom logout action that also clears cart
-export const logoutUser = () => (dispatch) => {
+export const logoutUser = () => (dispatch: any) => {
   // Clear cart and orders before logout
   dispatch({ type: 'cart/clearCartOnLogout' });
   dispatch({ type: 'orders/clearOrdersOnLogout' });
@@ -219,22 +230,10 @@ export const logoutUser = () => (dispatch) => {
   dispatch(logout());
 };
 
-export const { 
-  loginStart, 
-  loginSuccess, 
-  loginFailure,
-  registerStart,
-  registerSuccess, 
-  registerFailure,
-  logout, 
-  clearError,
-  updateProfile
-} = authSlice.actions;
-
 // Selectors
-export const selectUser = (state) => state.auth.user;
-export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
-export const selectIsLoading = (state) => state.auth.isLoading;
-export const selectError = (state) => state.auth.error;
+export const selectUser = (state: any) => state.auth.user;
+export const selectIsAuthenticated = (state: any) => state.auth.isAuthenticated;
+export const selectIsLoading = (state: any) => state.auth.isLoading;
+export const selectError = (state: any) => state.auth.error;
 
 export default authSlice.reducer;

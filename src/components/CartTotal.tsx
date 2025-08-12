@@ -1,11 +1,11 @@
-// src/components/CartTotal.jsx
+// src/components/CartTotal.tsx
 import React from "react";
 import { useSelector } from 'react-redux';
 import { selectCurrency, selectDeliveryFee } from '../store/slices/shopSlice';
 import { selectCartAmount } from '../store/slices/cartSlice';
 import Title from "./Title";
 
-const CartTotal = () => {
+const CartTotal: React.FC = () => {
     const currency = useSelector(selectCurrency);
     const deliveryFee = useSelector(selectDeliveryFee);
     const cartAmount = useSelector(selectCartAmount);
