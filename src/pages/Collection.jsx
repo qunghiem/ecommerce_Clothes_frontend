@@ -25,6 +25,53 @@ const Collection = () => {
     const filters = useSelector(selectFilters);
 
     const [filterProducts, setFilterProducts] = useState([]);
+    
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [productsPerPage] = useState(12); // Số sản phẩm mỗi trang
+    
+    // Calculate pagination
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = filterProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(filterProducts.length / productsPerPage);
+    
+    // Generate page numbers array
+    const getPageNumbers = () => {
+        const pageNumbers = [];
+        const maxVisiblePages = 5; // Số trang hiển thị tối đa
+        
+        if (totalPages <= maxVisiblePages) {
+            for (let i = 1; i <= totalPages; i++) {
+                pageNumbers.push(i);
+            }
+        } else {
+            if (currentPage <= 3) {
+                for (let i = 1; i <= maxVisiblePages; i++) {
+                    pageNumbers.push(i);
+                }
+                if (totalPages > maxVisiblePages) {
+                    pageNumbers.push('...');
+                    pageNumbers.push(totalPages);
+                }
+            } else if (currentPage >= totalPages - 2) {
+                pageNumbers.push(1);
+                pageNumbers.push('...');
+                for (let i = totalPages - maxVisiblePages + 1; i <= totalPages; i++) {
+                    pageNumbers.push(i);
+                }
+            } else {
+                pageNumbers.push(1);
+                pageNumbers.push('...');
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                    pageNumbers.push(i);
+                }
+                pageNumbers.push('...');
+                pageNumbers.push(totalPages);
+            }
+        }
+        return pageNumbers;
+    };
 
     const handleToggleFilter = () => {
         dispatch(setShowFilter(!showFilter));
@@ -32,14 +79,25 @@ const Collection = () => {
 
     const handleCategoryChange = (e) => {
         dispatch(toggleCategory(e.target.value));
+        setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
     };
 
     const handleSubCategoryChange = (e) => {
         dispatch(toggleSubCategory(e.target.value));
+        setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
     };
 
     const handleSortChange = (e) => {
         dispatch(setSortType(e.target.value));
+        setCurrentPage(1); // Reset về trang 1 khi sort thay đổi
+    };
+
+    const handlePageChange = (pageNumber) => {
+        if (pageNumber >= 1 && pageNumber <= totalPages) {
+            setCurrentPage(pageNumber);
+            // Scroll to top when changing page
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
 
     const applyFilter = () => {
@@ -88,6 +146,7 @@ const Collection = () => {
 
     useEffect(() => {
         applyFilter();
+        setCurrentPage(1); // Reset về trang 1 khi filters thay đổi
     }, [filters.category, filters.subCategory, search, showSearch, products]);
 
     return (
@@ -198,9 +257,18 @@ const Collection = () => {
                     </select>
                 </div>
 
+                {/* Products Info */}
+                <div className="flex justify-between items-center mb-4 text-sm text-gray-600">
+                    <p>
+                    Showing {indexOfFirstProduct + 1}–{Math.min(indexOfLastProduct, filterProducts.length)} of {filterProducts.length} products
+
+                    </p>
+                    <p>Page {currentPage} / {totalPages}</p>
+                </div>
+
                 {/* Map Products */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 gap-y-6">
-                    {filterProducts.map((item, index) => (
+                    {currentProducts.map((item, index) => (
                         <ProductItem
                             key={index}
                             id={item._id}
@@ -210,6 +278,90 @@ const Collection = () => {
                         />
                     ))}
                 </div>
+
+                {/* No products found */}
+                {filterProducts.length === 0 && (
+                    <div className="text-center py-20">
+                        <p className="text-gray-500 text-lg">Không tìm thấy sản phẩm nào</p>
+                        <p className="text-gray-400 text-sm mt-2">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                    </div>
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex justify-center items-center mt-12 mb-8">
+                        <div className="flex items-center space-x-1">
+                            {/* Previous button */}
+                            <button
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+                                    currentPage === 1
+                                        ? 'text-gray-400 cursor-not-allowed'
+                                        : 'text-gray-700 hover:text-black hover:bg-gray-100'
+                                }`}
+                            >
+                                « Prev
+                            </button>
+
+                            {/* Page numbers */}
+                            {getPageNumbers().map((pageNumber, index) => (
+                                <span key={index}>
+                                    {pageNumber === '...' ? (
+                                        <span className="px-3 py-2 text-gray-500">...</span>
+                                    ) : (
+                                        <button
+                                            onClick={() => handlePageChange(pageNumber)}
+                                            className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+                                                currentPage === pageNumber
+                                                    ? 'bg-black text-white'
+                                                    : 'text-gray-700 hover:text-black hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            {pageNumber}
+                                        </button>
+                                    )}
+                                </span>
+                            ))}
+
+                            {/* Next button */}
+                            <button
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+                                    currentPage === totalPages
+                                        ? 'text-gray-400 cursor-not-allowed'
+                                        : 'text-gray-700 hover:text-black hover:bg-gray-100'
+                                }`}
+                            >
+                                Next »
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Go to page input (for large datasets) */}
+                {totalPages > 10 && (
+                    <div className="flex justify-center items-center mt-4 mb-8">
+                        <div className="flex items-center space-x-2 text-sm">
+                            <span className="text-gray-600">Đi đến trang:</span>
+                            <input
+                                type="number"
+                                min="1"
+                                max={totalPages}
+                                value={currentPage}
+                                onChange={(e) => {
+                                    const page = parseInt(e.target.value);
+                                    if (page >= 1 && page <= totalPages) {
+                                        handlePageChange(page);
+                                    }
+                                }}
+                                className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+                            />
+                            <span className="text-gray-600">/ {totalPages}</span>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
